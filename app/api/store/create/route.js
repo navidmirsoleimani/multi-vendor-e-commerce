@@ -2,7 +2,6 @@ import client from "@/configs/imageKit";
 import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { connect } from "react-redux";
 
 export async function POST(request) {
 	try {

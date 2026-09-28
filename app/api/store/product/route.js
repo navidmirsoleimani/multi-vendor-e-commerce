@@ -98,7 +98,7 @@ export async function GET(request) {
 
 		const products = await prisma.product.findMany({
 			where: {
-				storeId: storeId,
+				storeId,
 			},
 		});
 

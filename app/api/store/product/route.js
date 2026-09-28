@@ -83,3 +83,31 @@ export async function POST(request) {
 		);
 	}
 }
+
+// Get all products for a seller
+export async function GET(request) {
+	try {
+		const { userId } = getAuth(request);
+
+		// middleware that gets a userId and returns their store
+		const storeId = await authSeller(userId);
+
+		if (!storeId) {
+			return NextResponse.json({ error: "not authorized" }, { status: 401 });
+		}
+
+		const products = await prisma.product.findMany({
+			where: {
+				storeId: storeId,
+			},
+		});
+
+		return NextResponse.json({ products });
+	} catch (error) {
+		console.error(error);
+		return NextResponse.json(
+			{ error: error.message || "something went wrong" },
+			{ status: 400 }
+		);
+	}
+}

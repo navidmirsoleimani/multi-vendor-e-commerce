@@ -2,6 +2,7 @@ import client from "@/configs/imageKit";
 import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { toFile } from "@imagekit/nodejs";
 
 export async function POST(request) {
 	try {
@@ -58,7 +59,7 @@ export async function POST(request) {
 		// upload image
 		const buffer = Buffer.from(await image.arrayBuffer());
 		const uploadResponse = await client.files.upload({
-			file: buffer,
+			file: await toFile(buffer, image.name),
 			fileName: image.name,
 			folder: "logos",
 		});
@@ -108,23 +109,33 @@ export async function POST(request) {
 
 // check if user have already registered a store
 
-export async function GET(params) {
+export async function GET(request) {
 	try {
 		const { userId } = getAuth(request);
 
-		// check if user has already registered a store
+		if (!userId) {
+			return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+		}
+
 		const store = await prisma.store.findFirst({
 			where: { userId },
 		});
+
 		if (store) {
-			return NextResponse.json({ status: store.status });
+			return NextResponse.json({
+				status: store.status,
+			});
 		}
-		return NextResponse.json({ status: "not registered" });
+
+		return NextResponse.json({
+			status: "not registered",
+		});
 	} catch (error) {
 		console.error(error);
+
 		return NextResponse.json(
 			{ error: error.message || "something went wrong" },
-			{ status: 400 }
+			{ status: 500 }
 		);
 	}
 }

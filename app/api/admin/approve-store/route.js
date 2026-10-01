@@ -54,7 +54,7 @@ export async function GET(request) {
 		const stores = await prisma.store.findMany({
 			where: {
 				status: { in: ["pending", "rejected"] },
-				include: { user: true },
+				include: { user: true }, // returns user's data saved in the stores tables
 			},
 		});
 		return NextResponse.json({ stores });

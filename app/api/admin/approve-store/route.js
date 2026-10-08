@@ -44,7 +44,7 @@ export async function POST(request) {
 // get all pending and rejected stores
 export async function GET(request) {
 	try {
-		const { userId } = getAuth();
+		const { userId } = getAuth(request);
 		const isAdmin = await authAdmin(userId);
 
 		if (!isAdmin) {
@@ -53,8 +53,12 @@ export async function GET(request) {
 
 		const stores = await prisma.store.findMany({
 			where: {
-				status: { in: ["pending", "rejected"] },
-				include: { user: true }, // returns user's data saved in the stores tables
+				status: {
+					in: ["pending", "rejected"],
+				},
+			},
+			include: {
+				user: true,
 			},
 		});
 		return NextResponse.json({ stores });

@@ -17,9 +17,20 @@ export async function POST(request) {
 
 		newCoupon.code = newCoupon.code.toUpperCase();
 
-		await prisma.coupon.create({
-			data: newCoupon,
-		});
+		await prisma.coupon
+			.create({
+				data: newCoupon,
+			})
+			.then(async (coupon) => {
+				// Run inngest scheduler function to delete coupon on expiry
+				await inngest.send({
+					name: "app/coupon.expired",
+					data: {
+						code: coupon.code,
+						expires_at: coupon.expiresAt,
+					},
+				});
+			});
 
 		return NextResponse.json({
 			message: "Coupon added successfully",

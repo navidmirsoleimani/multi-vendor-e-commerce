@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 // toggle store isActive property
 export async function POST(request) {
 	try {
-		const { userId } = getAuth();
+		const { userId } = getAuth(request);
 		const isAdmin = await authAdmin(userId);
 
 		if (!isAdmin) {

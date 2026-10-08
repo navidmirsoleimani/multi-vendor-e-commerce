@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 // get all approved stores
 export async function GET(request) {
 	try {
-		const { userId } = getAuth();
+		const { userId } = getAuth(request);
 		const isAdmin = await authAdmin(userId);
 
 		if (!isAdmin) {
@@ -16,7 +16,9 @@ export async function GET(request) {
 		const stores = await prisma.store.findMany({
 			where: {
 				status: "approved",
-				include: { user: true }, // returns user's data saved in the stores tables
+			},
+			include: {
+				user: true,
 			},
 		});
 		return NextResponse.json({ stores });

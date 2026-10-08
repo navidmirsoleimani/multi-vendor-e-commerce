@@ -8,20 +8,25 @@ export async function POST(request) {
 	try {
 		const { userId } = getAuth(request);
 		const isAdmin = await authAdmin(userId);
+
 		if (!isAdmin) {
-			NextResponse.json({ error: "not authorized" }, { status: "401" });
+			return NextResponse.json({ error: "not authorized" }, { status: 401 });
 		}
 
-		const { coupon } = request?.json();
-		coupon.code = coupon.code.toUpperCase();
+		const { newCoupon } = await request.json();
+
+		newCoupon.code = newCoupon.code.toUpperCase();
 
 		await prisma.coupon.create({
-			data: coupon,
+			data: newCoupon,
 		});
 
-		return NextResponse.json({ message: "Coupon added successfully" });
+		return NextResponse.json({
+			message: "Coupon added successfully",
+		});
 	} catch (error) {
 		console.error(error);
+
 		return NextResponse.json(
 			{ error: error.code || error.message },
 			{ status: 400 }
@@ -29,25 +34,31 @@ export async function POST(request) {
 	}
 }
 
-// Delete coupon  /api/coupon?id=couponId
+// Delete coupon
 export async function DELETE(request) {
 	try {
 		const { userId } = getAuth(request);
 		const isAdmin = await authAdmin(userId);
+
 		if (!isAdmin) {
-			NextResponse.json({ error: "not authorized" }, { status: "401" });
+			return NextResponse.json({ error: "not authorized" }, { status: 401 });
 		}
+
 		const { searchParams } = request.nextUrl;
 		const code = searchParams.get("code");
 
 		await prisma.coupon.delete({
-			wherer: {
+			where: {
 				code,
 			},
 		});
-		return NextResponse.json({ message: "Coupon deleted successfully" });
+
+		return NextResponse.json({
+			message: "Coupon deleted successfully",
+		});
 	} catch (error) {
 		console.error(error);
+
 		return NextResponse.json(
 			{ error: error.code || error.message },
 			{ status: 400 }
@@ -60,13 +71,17 @@ export async function GET(request) {
 	try {
 		const { userId } = getAuth(request);
 		const isAdmin = await authAdmin(userId);
+
 		if (!isAdmin) {
-			NextResponse.json({ error: "not authorized" }, { status: "401" });
+			return NextResponse.json({ error: "not authorized" }, { status: 401 });
 		}
+
 		const coupons = await prisma.coupon.findMany({});
+
 		return NextResponse.json({ coupons });
 	} catch (error) {
 		console.error(error);
+
 		return NextResponse.json(
 			{ error: error.code || error.message },
 			{ status: 400 }

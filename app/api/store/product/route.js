@@ -3,6 +3,7 @@ import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import client from "@/configs/imageKit";
 import prisma from "@/lib/prisma";
+import { toFile } from "@imagekit/nodejs";
 
 // add a new product
 export async function POST(request) {
@@ -44,9 +45,9 @@ export async function POST(request) {
 			images.map(async (image) => {
 				const buffer = Buffer.from(await image.arrayBuffer());
 				const uploadResponse = await client.files.upload({
-					file: buffer,
+					file: await toFile(buffer, image.name),
 					fileName: image.name,
-					folder: "logos",
+					folder: "products",
 				});
 				// build optimized url
 				const optimizedImage = client.helper.buildSrc({
@@ -71,6 +72,7 @@ export async function POST(request) {
 				category,
 				images: imagesUrl,
 				storeId,
+				price,
 			},
 		});
 

@@ -1,3 +1,4 @@
+import { inngest } from "@/inngest/client";
 import prisma from "@/lib/prisma";
 import authAdmin from "@/middlewares/authAdmin";
 import { getAuth } from "@clerk/nextjs/server";
@@ -37,6 +38,13 @@ export async function POST(request) {
 		});
 	} catch (error) {
 		console.error(error);
+
+		if (error.code === "P2002") {
+			return NextResponse.json(
+				{ error: "A coupon with this code already exists" },
+				{ status: 409 }
+			);
+		}
 
 		return NextResponse.json(
 			{ error: error.code || error.message },

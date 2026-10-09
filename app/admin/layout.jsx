@@ -1,6 +1,5 @@
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Show, SignIn } from "@clerk/nextjs";
-
 export const metadata = {
 	title: "GoCart. - Admin",
 	description: "GoCart. - Admin",

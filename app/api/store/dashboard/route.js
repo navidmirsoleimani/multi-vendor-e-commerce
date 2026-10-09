@@ -19,7 +19,7 @@ export async function GET(request) {
 		});
 
 		// Get all products with ratings for seller
-		const products = await prisma.products.findMany({
+		const products = await prisma.product.findMany({
 			where: {
 				storeId,
 			},
@@ -35,7 +35,7 @@ export async function GET(request) {
 		const dashboardData = {
 			ratings,
 			totalOrders: orders.length,
-			totalEarnigns: Math.round(
+			totalEarnings: Math.round(
 				orders.reduce((acc, order) => acc + order.total, 0)
 			),
 			totalProducts: products.length,

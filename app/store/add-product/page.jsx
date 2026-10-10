@@ -62,8 +62,6 @@ export default function StoreAddProduct() {
 			});
 			toast.success(data?.message);
 
-			console.log("formData", formData);
-
 			// reset
 			setProductInfo({
 				name: "",

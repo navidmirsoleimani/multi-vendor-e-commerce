@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 // toggle stock of a product
 export async function POST(request) {
 	try {
-		const { userId } = getAuth();
+		const { userId } = getAuth(request);
 		const { productId } = await request.json();
 
 		if (!productId) {

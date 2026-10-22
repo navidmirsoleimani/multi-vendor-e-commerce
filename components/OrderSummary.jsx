@@ -4,6 +4,7 @@ import AddressModal from "./AddressModal";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Show } from "@clerk/nextjs";
 
 const OrderSummary = ({ totalPrice, items }) => {
 	const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "$";
@@ -114,7 +115,12 @@ const OrderSummary = ({ totalPrice, items }) => {
 							{currency}
 							{totalPrice.toLocaleString()}
 						</p>
-						<p>Free</p>
+						<Show when={{ plan: "plus" }}>
+							<p>Free</p>
+						</Show>
+						<Show when={{ plan: "free_user" }}>
+							<p>{currency}5</p>
+						</Show>
 						{coupon && (
 							<p>{`-${currency}${((coupon.discount / 100) * totalPrice).toFixed(
 								2
@@ -162,9 +168,18 @@ const OrderSummary = ({ totalPrice, items }) => {
 				<p>Total:</p>
 				<p className='font-medium text-right'>
 					{currency}
-					{coupon
-						? (totalPrice - (coupon.discount / 100) * totalPrice).toFixed(2)
-						: totalPrice.toLocaleString()}
+					<Show when={{ plan: "free_user" }}>
+						{coupon
+							? (totalPrice + 5 - (coupon.discount / 100) * totalPrice).toFixed(
+									2
+							  )
+							: (totalPrice + 5).toLocaleString()}
+					</Show>
+					<Show when={{ plan: "plus" }}>
+						{coupon
+							? (totalPrice - (coupon.discount / 100) * totalPrice).toFixed(2)
+							: totalPrice.toLocaleString()}
+					</Show>
 				</p>
 			</div>
 			<button

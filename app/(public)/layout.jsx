@@ -3,16 +3,35 @@ import Banner from "@/components/Banner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "@/lib/features/product/productSlice";
+import { fetchCard, uploadCart } from "@/lib/features/cart/cartSlice";
+import { useAuth, useUser } from "@clerk/nextjs";
 
 export default function PublicLayout({ children }) {
 	const dispatch = useDispatch();
+	const { user } = useUser();
+	const { getToken } = useAuth();
+
+	const { cartItems } = useSelector((state) => state.cart);
 
 	useEffect(() => {
 		// empty object
 		dispatch(fetchProducts({}));
 	}, []);
+
+	useEffect(() => {
+		if (user) {
+			dispatch(fetchCard({ getToken }));
+		}
+	}, [user]);
+
+	// whenever cartItems changes it will store it in database after 1 sec
+	useEffect(() => {
+		if (user) {
+			dispatch(uploadCart({ getToken }));
+		}
+	}, [cartItems]);
 
 	return (
 		<>

@@ -33,7 +33,7 @@ export async function GET(request) {
 		const { userId } = getAuth(request);
 
 		const addresses = await prisma.address.findMany({
-			where: { id: userId },
+			where: { userId },
 		});
 
 		return NextResponse.json({ addresses });

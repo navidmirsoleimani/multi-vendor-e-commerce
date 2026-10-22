@@ -28,7 +28,7 @@ const OrderSummary = ({ totalPrice, items }) => {
 
 		try {
 			if (!user) return toast("Please login to proceed!");
-			const token = getToken();
+			const token = await getToken();
 
 			const { data } = await axios.post(
 				"/api/coupon",

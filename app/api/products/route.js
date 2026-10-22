@@ -21,8 +21,8 @@ export async function GET(request) {
 					},
 				},
 				store: true,
-				orderBy: { createdAt: "desc" },
 			},
+			orderBy: { createdAt: "desc" },
 		});
 
 		// remove products with store isActive false
@@ -31,8 +31,9 @@ export async function GET(request) {
 		return NextResponse.json({ products });
 	} catch (error) {
 		console.error(error);
+
 		return NextResponse.json(
-			{ error: "An internal server error occured." },
+			{ error: error.message || "An internal server error occured." },
 			{ status: 500 }
 		);
 	}

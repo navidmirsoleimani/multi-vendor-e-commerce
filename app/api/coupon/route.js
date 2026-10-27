@@ -33,7 +33,6 @@ export async function POST(request) {
 			}
 		}
 		if (coupon.forMember) {
-			// new : it should be their first order
 			const hasPlusPlan = has({ plan: "plus" });
 			if (!hasPlusPlan) {
 				return NextResponse.json(

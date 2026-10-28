@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
-import { endOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 
 // Update user cart
@@ -11,16 +10,15 @@ export async function POST(request) {
 			return NextResponse.json({ error: "Not Authorized!" }, { status: 401 });
 		}
 
-		const { addressID, items, couponCode, paymentMethod } =
+		const { addressId, items, couponCode, paymentMethod } =
 			await request.json();
 
-		if (
-			!addressID ||
-			!items ||
-			Array.isArray(items) ||
-			!items.length === 0 ||
-			!paymentMethod
-		) {
+		console.log("addressId", addressId);
+		console.log("items", items);
+		console.log("paymentMethod", paymentMethod);
+		console.log("items.length", items.length);
+
+		if (!addressId || !items || items.length === 0 || !paymentMethod) {
 			return NextResponse.json(
 				{ error: "Missing order details!" },
 				{ status: 400 }
@@ -114,7 +112,7 @@ export async function POST(request) {
 					data: {
 						userId,
 						storeId,
-						addressID,
+						addressId,
 						total: parseFloat(total.toFixed(2)),
 						paymentMethod,
 						isCouponUsed: coupon ? true : false,

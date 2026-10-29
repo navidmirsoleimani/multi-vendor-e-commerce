@@ -9,13 +9,10 @@ const authSeller = async (userId) => {
 			include: { store: true },
 		});
 
-		if (user.store) {
-			if (user.store.status === "approved") {
-				return user.store.id;
-			}
-		} else {
-			return false;
+		if (user?.store?.status === "approved") {
+			return user.store.id;
 		}
+		return false;
 	} catch (error) {
 		console.error(error);
 		return false;

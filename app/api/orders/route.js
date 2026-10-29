@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
+import { PaymentMethod } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // Update user cart
@@ -159,13 +160,13 @@ export async function GET(request) {
 			where: {
 				userId,
 				OR: [
-					{ paymentMethod: paymentMethod.COD },
-					{ AND: [{ paymentMethod: paymentMethod.stripe }, { isPaid: true }] },
+					{ paymentMethod: PaymentMethod.COD },
+					{ AND: [{ paymentMethod: PaymentMethod.STRIPE }, { isPaid: true }] },
 				],
 			},
 			include: {
 				orderItems: { include: { product: true } },
-				addres: true,
+				address: true,
 			},
 			orderBy: { createdAt: "desc" },
 		});

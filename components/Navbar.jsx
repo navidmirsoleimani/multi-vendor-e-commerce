@@ -71,7 +71,7 @@ const Navbar = () => {
 
 						{!user ? (
 							<button
-								onClick={openSignIn}
+								onClick={() => openSignIn()}
 								className='px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full'>
 								Login
 							</button>
@@ -94,7 +94,7 @@ const Navbar = () => {
 					{!user ? (
 						<div className='sm:hidden'>
 							<button
-								onClick={openSignIn}
+								onClick={() => openSignIn()}
 								className='px-7 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-sm transition text-white rounded-full'>
 								Login
 							</button>
@@ -110,10 +110,6 @@ const Navbar = () => {
 											router.push("/cart");
 										}}
 									/>
-								</UserButton.MenuItems>
-							</UserButton>
-							<UserButton>
-								<UserButton.MenuItems>
 									<UserButton.Action
 										labelIcon={<PackageIcon size={16} />}
 										label='My Orders'

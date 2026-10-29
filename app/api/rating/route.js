@@ -46,7 +46,7 @@ export async function POST(request) {
 }
 
 // Get all ratings for a user
-export async function get(request) {
+export async function GET(request) {
 	try {
 		const { userId } = getAuth(request);
 		if (!userId) {

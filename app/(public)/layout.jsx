@@ -8,6 +8,7 @@ import { fetchProducts } from "@/lib/features/product/productSlice";
 import { fetchCart, uploadCart } from "@/lib/features/cart/cartSlice";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { fetchAdress } from "@/lib/features/address/addressSlice";
+import { fetchUserRatings } from "@/lib/features/rating/ratingSlice";
 
 export default function PublicLayout({ children }) {
 	const dispatch = useDispatch();
@@ -25,6 +26,7 @@ export default function PublicLayout({ children }) {
 		if (user) {
 			dispatch(fetchCart({ getToken }));
 			dispatch(fetchAdress({ getToken }));
+			dispatch(fetchUserRatings({ getToken }));
 		}
 	}, [user]);
 

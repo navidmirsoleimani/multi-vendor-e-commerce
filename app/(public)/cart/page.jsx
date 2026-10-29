@@ -5,7 +5,7 @@ import PageTitle from "@/components/PageTitle";
 import { deleteItemFromCart } from "@/lib/features/cart/cartSlice";
 import { Trash2Icon } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function Cart() {
@@ -16,35 +16,28 @@ export default function Cart() {
 
 	const dispatch = useDispatch();
 
-	const [cartArray, setCartArray] = useState([]);
-	const [totalPrice, setTotalPrice] = useState(0);
+	// Derived data: no state or effect needed
+	const cartArray = useMemo(() => {
+		const productMap = new Map(products.map((p) => [p.id, p]));
+		const result = [];
 
-	const createCartArray = () => {
-		setTotalPrice(0);
-		const cartArray = [];
-		for (const [key, value] of Object.entries(cartItems)) {
-			const product = products.find((product) => product.id === key);
+		for (const [productId, quantity] of Object.entries(cartItems)) {
+			const product = productMap.get(productId);
 			if (product) {
-				cartArray.push({
-					...product,
-					quantity: value,
-				});
-				setTotalPrice((prev) => prev + product.price * value);
+				result.push({ ...product, quantity });
 			}
 		}
-		setCartArray(cartArray);
-	};
+		return result;
+	}, [cartItems, products]);
+
+	const totalPrice = useMemo(
+		() => cartArray.reduce((sum, item) => sum + item.price * item.quantity, 0),
+		[cartArray]
+	);
 
 	const handleDeleteItemFromCart = (productId) => {
 		dispatch(deleteItemFromCart({ productId }));
 	};
-
-	useEffect(() => {
-		// which is better in your opinion
-		if (products.length > 0) {
-			createCartArray();
-		}
-	}, [cartItems, products]);
 
 	return cartArray.length > 0 ? (
 		<div className='min-h-screen mx-6 text-slate-800'>
@@ -67,16 +60,16 @@ export default function Cart() {
 							</tr>
 						</thead>
 						<tbody>
-							{cartArray.map((item, index) => (
+							{cartArray.map((item) => (
 								<tr
-									key={index}
+									key={item.id}
 									className='space-x-2'>
 									<td className='flex gap-3 my-4'>
 										<div className='flex gap-3 items-center justify-center bg-slate-100 size-18 rounded-md'>
 											<Image
 												src={item.images[0]}
 												className='h-14 w-auto'
-												alt=''
+												alt={item.name}
 												width={45}
 												height={45}
 											/>

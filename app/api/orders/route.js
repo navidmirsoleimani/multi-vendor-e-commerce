@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
 import { PaymentMethod } from "@prisma/client";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
 // Place an order (one order per store)
 export async function POST(request) {
@@ -35,7 +36,7 @@ export async function POST(request) {
 
 		const isPlusMember = has({ plan: "plus" });
 
-		// ---------- Coupon validation ----------
+		// Coupon validation
 		// Totals are calculated here on the server: the client's price and
 		// coupon data are never trusted.
 		let coupon = null;
@@ -52,10 +53,13 @@ export async function POST(request) {
 				);
 			}
 
-			// TODO: add an expiry check here if your Coupon model has one
-
 			if (coupon.forNewUser) {
-				const orderCount = await prisma.order.count({ where: { userId } });
+				const orderCount = await prisma.order.count({
+					where: {
+						userId,
+						OR: [{ paymentMethod: PaymentMethod.COD }, { isPaid: true }],
+					},
+				});
 				if (orderCount > 0) {
 					return NextResponse.json(
 						{ error: "Coupon is valid for new users only!" },
@@ -72,14 +76,14 @@ export async function POST(request) {
 			}
 		}
 
-		// ---------- Load products (single query) ----------
+		// Load products
 		const productIds = [...new Set(items.map((item) => item.id))];
 		const products = await prisma.product.findMany({
 			where: { id: { in: productIds } },
 		});
 		const productMap = new Map(products.map((p) => [p.id, p]));
 
-		// ---------- Group items by store ----------
+		// Group items by store
 		// A user can have products from different sellers, so each store
 		// gets its own order.
 		const ordersByStore = new Map();
@@ -113,7 +117,7 @@ export async function POST(request) {
 			});
 		}
 
-		// ---------- Create one order per store, atomically ----------
+		//  Create one order per store, atomically
 		const orderIds = [];
 		let fullAmount = 0;
 		let isShippingFeeAdded = false;
@@ -129,7 +133,6 @@ export async function POST(request) {
 					total -= (total * coupon.discount) / 100;
 				}
 
-				// Flat $5 shipping, charged once for the whole checkout
 				if (!isPlusMember && !isShippingFeeAdded) {
 					total += 5;
 					isShippingFeeAdded = true;
@@ -160,8 +163,8 @@ export async function POST(request) {
 				orderIds.push(order.id);
 			}
 
-			// For COD the order is final, so clear the cart now.
-			// For Stripe, clear it after payment is confirmed (webhook).
+			// COD is final, so clear the cart now.
+			// For Stripe, clear it in the webhook after payment is confirmed.
 			if (paymentMethod === PaymentMethod.COD) {
 				await tx.user.update({
 					where: { id: userId },
@@ -171,13 +174,38 @@ export async function POST(request) {
 		});
 
 		if (paymentMethod === PaymentMethod.STRIPE) {
-			// TODO: create the Stripe Checkout session here, using
-			// orderIds in metadata and fullAmount for the total, then:
-			// return NextResponse.json({ session });
-			return NextResponse.json(
-				{ error: "Stripe checkout is not implemented yet" },
-				{ status: 501 }
-			);
+			const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+			const origin = request.headers.get("origin");
+
+			try {
+				const session = await stripe.checkout.sessions.create({
+					line_items: [
+						{
+							price_data: {
+								currency: "eur",
+								product_data: { name: "Order" },
+								unit_amount: Math.round(fullAmount * 100),
+							},
+							quantity: 1,
+						},
+					],
+					expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+					mode: "payment",
+					success_url: `${origin}/loading?nextUrl=orders`,
+					cancel_url: `${origin}/cart`,
+					metadata: {
+						orderIds: orderIds.join(","),
+						userId,
+						appId: "gocart",
+					},
+				});
+
+				return NextResponse.json({ session });
+			} catch (stripeError) {
+				// Don't leave unpaid orders behind if Stripe fails
+				await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
+				throw stripeError;
+			}
 		}
 
 		return NextResponse.json({
